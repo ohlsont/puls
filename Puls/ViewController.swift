@@ -8,6 +8,7 @@
 
 import UIKit
 import HealthKit
+import Charts
 
 struct PulseData {
     let pulse: Double
@@ -16,17 +17,27 @@ struct PulseData {
 
 class ViewController: UIViewController {
     let healthStore: HKHealthStore = HKHealthStore()
+    weak var axisFormatDelegate: IAxisValueFormatter?
+    @IBOutlet weak var chart: BarChartView!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        axisFormatDelegate = self
         // Do any additional setup after loading the view, typically from a nib.
         getData { points in
             DispatchQueue.main.async {
-                let chart = PulseChart(frame: CGRect(x: 0, y: 100, width: 300, height: 300), points: points)
-                let l = Line()
-                self.view.addSubview(chart.view)
-                self.view.addSubview(l.view)
+                self.fill(points: points)
             }
         }
+    }
+    
+    func fill(points: [PulseData]) {
+        let d = points.map {BarChartDataEntry(x: $0.start.timeIntervalSince1970, y: $0.pulse)}
+        print("dd \(d)")
+        let chartDataSet = BarChartDataSet(values: d.takeElseAll(30), label: "Pulse")
+        chart.data = BarChartData(dataSet: chartDataSet)
+        let xaxis = chart.xAxis
+        xaxis.valueFormatter = axisFormatDelegate
     }
     
     override func didReceiveMemoryWarning() {
@@ -84,6 +95,28 @@ class ViewController: UIViewController {
         let endDate: Date = calendar.date(byAdding: Calendar.Component.day, value: 1, to: starDate)!
         
         return (starDate, endDate)
+    }
+}
+
+extension ViewController: IAxisValueFormatter {
+    
+    func stringForValue(_ value: Double, axis: AxisBase?) -> String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "HH:mm"
+        return dateFormatter.string(from: Date(timeIntervalSince1970: value))
+    }
+}
+
+extension Array {
+    func takeElseAll(_ take: Int) -> Array {
+        guard take > 0 else {
+            return []
+        }
+        if self.count < take {
+            return Array(self[0...self.count-1])
+        } else {
+            return Array(self[0...take-1])
+        }
     }
 }
 

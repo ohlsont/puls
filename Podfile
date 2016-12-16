@@ -6,7 +6,7 @@ target 'Puls' do
   use_frameworks!
 
   # Pods for Puls
-  pod 'SwiftCharts', '~> 0.5'
+  pod 'Charts/Realm'
 
   target 'PulsTests' do
     inherit! :search_paths
