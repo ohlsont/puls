@@ -18,7 +18,7 @@ struct PulseData {
 class ViewController: UIViewController {
     let healthStore: HKHealthStore = HKHealthStore()
     weak var axisFormatDelegate: IAxisValueFormatter?
-    @IBOutlet weak var chart: BarChartView!
+    @IBOutlet weak var chart: LineChartView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -32,12 +32,24 @@ class ViewController: UIViewController {
     }
     
     func fill(points: [PulseData]) {
-        let d = points.map {BarChartDataEntry(x: $0.start.timeIntervalSince1970, y: $0.pulse)}
-        print("dd \(d)")
-        let chartDataSet = BarChartDataSet(values: d.takeElseAll(30), label: "Pulse")
-        chart.data = BarChartData(dataSet: chartDataSet)
+        let chartDataSet = dataSet(points: points)
+        chart.legend.form = .line
+        chart.data = LineChartData(dataSets: [chartDataSet])
         let xaxis = chart.xAxis
         xaxis.valueFormatter = axisFormatDelegate
+        chart.data?.notifyDataChanged()
+        chart.notifyDataSetChanged()
+    }
+    
+    func dataSet(points: [PulseData]) -> LineChartDataSet {
+        let d = points.enumerated().map {ChartDataEntry(x: Double($0.offset), y: $0.element.pulse)}
+        let set1: LineChartDataSet = LineChartDataSet(values: d, label: "Pulse")
+        let max = points.map({$0.pulse}).max()
+        let min = points.map({$0.pulse}).min()
+        let xmax = points.count
+        let xmin = 0
+        print("max \(max), \(min) \(xmax) \(xmin)")
+        return set1
     }
     
     override func didReceiveMemoryWarning() {
