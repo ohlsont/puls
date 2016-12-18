@@ -33,6 +33,12 @@ class ViewController: UIViewController {
     
     func fill(points: [PulseData]) {
         let chartDataSet = dataSet(points: points)
+        //chartDataSet.colors = ChartColorTemplates.colorful()
+        chartDataSet.fillAlpha = 1
+        chartDataSet.drawFilledEnabled = true
+        chartDataSet.drawCircleHoleEnabled = false
+        chartDataSet.circleRadius = 1
+        
         chart.legend.form = .line
         chart.data = LineChartData(dataSets: [chartDataSet])
         let xaxis = chart.xAxis
@@ -42,6 +48,7 @@ class ViewController: UIViewController {
     }
     
     func dataSet(points: [PulseData]) -> LineChartDataSet {
+        self.points = points
         let d = points.enumerated().map {ChartDataEntry(x: Double($0.offset), y: $0.element.pulse)}
         let set1: LineChartDataSet = LineChartDataSet(values: d, label: "Pulse")
         let max = points.map({$0.pulse}).max()
@@ -58,6 +65,7 @@ class ViewController: UIViewController {
     }
 
 
+    var points = [PulseData]()
     func getData(callback: @escaping (_ data: [PulseData])->()) {
         guard HKHealthStore.isHealthDataAvailable() else {
             print("not available")
@@ -81,7 +89,6 @@ class ViewController: UIViewController {
                 let data = samples.map { (sample) -> PulseData in
                     let heartRateUnit = HKUnit(from: "count/min")
                     let rate = sample.quantity.doubleValue(for: heartRateUnit)
-                    print("data \(rate) \(sample.startDate)")
                     return PulseData(pulse: rate, start: sample.startDate)
                 }
                 callback(data)
@@ -114,8 +121,9 @@ extension ViewController: IAxisValueFormatter {
     
     func stringForValue(_ value: Double, axis: AxisBase?) -> String {
         let dateFormatter = DateFormatter()
+        dateFormatter.timeZone = TimeZone(secondsFromGMT: 3600)
         dateFormatter.dateFormat = "HH:mm"
-        return dateFormatter.string(from: Date(timeIntervalSince1970: value))
+        return dateFormatter.string(from: self.points[self.points.count - Int(value)-1].start)
     }
 }
 
@@ -129,6 +137,34 @@ extension Array {
         } else {
             return Array(self[0...take-1])
         }
+    }
+}
+
+extension UIColor {
+    public convenience init?(hexString: String) {
+        let r, g, b, a: CGFloat
+        
+        if hexString.hasPrefix("#") {
+            let start = hexString.index(hexString.startIndex, offsetBy: 1)
+            let hexColor = hexString.substring(from: start)
+            
+            if hexColor.characters.count == 8 {
+                let scanner = Scanner(string: hexColor)
+                var hexNumber: UInt64 = 0
+                
+                if scanner.scanHexInt64(&hexNumber) {
+                    r = CGFloat((hexNumber & 0xff000000) >> 24) / 255
+                    g = CGFloat((hexNumber & 0x00ff0000) >> 16) / 255
+                    b = CGFloat((hexNumber & 0x0000ff00) >> 8) / 255
+                    a = CGFloat(hexNumber & 0x000000ff) / 255
+                    
+                    self.init(red: r, green: g, blue: b, alpha: a)
+                    return
+                }
+            }
+        }
+        
+        return nil
     }
 }
 
