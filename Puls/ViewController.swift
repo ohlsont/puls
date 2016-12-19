@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import HealthKit
+
 import Charts
 
 struct PulseData {
@@ -15,118 +15,61 @@ struct PulseData {
     let start: Date
 }
 
-class ViewController: UIViewController {
-    let healthStore: HKHealthStore = HKHealthStore()
-    weak var axisFormatDelegate: IAxisValueFormatter?
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     @IBOutlet weak var chart: LineChartView!
+    @IBOutlet weak var pulseTable: UITableView!
+    
+    let pulseManager = PulseDataManager()
+    var chartManager: ChartManager? = nil
+    var pulseDays = [(Date,[PulseData])]()
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        axisFormatDelegate = self
+        chartManager = ChartManager(chart: chart)
+        pulseTable.delegate = self
+        pulseTable.dataSource = self
+        
         // Do any additional setup after loading the view, typically from a nib.
-        getData { points in
+        pulseManager.getTodaysData(callback: { points in
             DispatchQueue.main.async {
-                self.fill(points: points)
+                self.chartManager?.fill(points: points)
+            }
+        })
+        
+        pulseManager.getOneWeekData { (dat: [Date : [PulseData]]) in
+            self.pulseDays = dat.map({$0})
+            DispatchQueue.main.async {
+                self.pulseTable.reloadData()
             }
         }
     }
     
-    func fill(points: [PulseData]) {
-        let chartDataSet = dataSet(points: points)
-        //chartDataSet.colors = ChartColorTemplates.colorful()
-        chartDataSet.fillAlpha = 1
-        chartDataSet.drawFilledEnabled = true
-        chartDataSet.drawCircleHoleEnabled = false
-        chartDataSet.circleRadius = 1
-        
-        chart.legend.form = .line
-        chart.data = LineChartData(dataSets: [chartDataSet])
-        let xaxis = chart.xAxis
-        xaxis.valueFormatter = axisFormatDelegate
-        chart.data?.notifyDataChanged()
-        chart.notifyDataSetChanged()
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
     }
     
-    func dataSet(points: [PulseData]) -> LineChartDataSet {
-        self.points = points
-        let d = points.enumerated().map {ChartDataEntry(x: Double($0.offset), y: $0.element.pulse)}
-        let set1: LineChartDataSet = LineChartDataSet(values: d, label: "Pulse")
-        let max = points.map({$0.pulse}).max()
-        let min = points.map({$0.pulse}).min()
-        let xmax = points.count
-        let xmin = 0
-        print("max \(max), \(min) \(xmax) \(xmin)")
-        return set1
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return pulseDays.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let dayTuple = pulseDays[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: "pulseCell", for: indexPath)
+        if let cell = cell as? PulseDayCell {
+            cell.configure(pulseData: dayTuple.1)
+        }
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-
-
-    var points = [PulseData]()
-    func getData(callback: @escaping (_ data: [PulseData])->()) {
-        guard HKHealthStore.isHealthDataAvailable() else {
-            print("not available")
-            return
-        }
-        
-        let pulse = HKQuantityType.quantityType(forIdentifier: HKQuantityTypeIdentifier.heartRate)!
-        healthStore.requestAuthorization(toShare: nil, read: [pulse], completion: { (ok, error) in
-            guard error == nil else {
-                print("failed getting auth")
-                return
-            }
-            let limit: Int = Int(HKObjectQueryNoLimit)
-            let predicate = self.predicateForSamplesToday()
-            let sort = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
-            let query = HKSampleQuery(sampleType: pulse, predicate: predicate, limit: limit, sortDescriptors: [sort]) { (query: HKSampleQuery, samples: [HKSample]?, error: Error?) in
-                guard let samples = samples as? [HKQuantitySample], error == nil else {
-                    print("query went bad")
-                    return
-                }
-                let data = samples.map { (sample) -> PulseData in
-                    let heartRateUnit = HKUnit(from: "count/min")
-                    let rate = sample.quantity.doubleValue(for: heartRateUnit)
-                    return PulseData(pulse: rate, start: sample.startDate)
-                }
-                callback(data)
-            }
-            self.healthStore.execute(query)
-        })
-    }
-    
-    private func predicateForSamplesToday() -> NSPredicate {
-        let (starDate, endDate): (Date, Date) = self.datesFromToday()
-        
-        let predicate: NSPredicate = HKQuery.predicateForSamples(withStart: starDate, end: endDate, options: HKQueryOptions.strictStartDate)
-        
-        return predicate
-    }
-    
-    private func datesFromToday() -> (Date, Date) {
-        let calendar = Calendar.current
-        
-        let nowDate = Date()
-        
-        let starDate: Date = calendar.startOfDay(for: nowDate)
-        let endDate: Date = calendar.date(byAdding: Calendar.Component.day, value: 1, to: starDate)!
-        
-        return (starDate, endDate)
-    }
 }
-
-extension ViewController: IAxisValueFormatter {
-    
-    func stringForValue(_ value: Double, axis: AxisBase?) -> String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.timeZone = TimeZone(secondsFromGMT: 3600)
-        dateFormatter.dateFormat = "HH:mm"
-        return dateFormatter.string(from: self.points[self.points.count - Int(value)-1].start)
-    }
-}
-
 extension Array {
     func takeElseAll(_ take: Int) -> Array {
         guard take > 0 else {

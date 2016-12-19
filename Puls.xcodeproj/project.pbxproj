@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A15C9AF81E06D7C000D6FCF9 /* pulseDayCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15C9AF71E06D7C000D6FCF9 /* pulseDayCell.swift */; };
+		A15C9AFA1E088D5300D6FCF9 /* pulseData.swift in Sources */ = {isa = PBXBuildFile; fileRef = A15C9AF91E088D5300D6FCF9 /* pulseData.swift */; };
 		A172FEDC1E04720E00A0BC8A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A172FEDB1E04720E00A0BC8A /* AppDelegate.swift */; };
 		A172FEDE1E04720E00A0BC8A /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A172FEDD1E04720E00A0BC8A /* ViewController.swift */; };
 		A172FEE11E04720E00A0BC8A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A172FEDF1E04720E00A0BC8A /* Main.storyboard */; };
@@ -47,6 +49,8 @@
 		667113AA9C63585C880EE7AA /* Pods_PulsUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PulsUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6F3393691CE55BB9233315FE /* Pods-Puls.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Puls.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Puls/Pods-Puls.debug.xcconfig"; sourceTree = "<group>"; };
 		89FDDCE2B264A6EACC926382 /* Pods_PulsTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_PulsTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		A15C9AF71E06D7C000D6FCF9 /* pulseDayCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = pulseDayCell.swift; sourceTree = "<group>"; };
+		A15C9AF91E088D5300D6FCF9 /* pulseData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = pulseData.swift; sourceTree = "<group>"; };
 		A172FED81E04720E00A0BC8A /* Puls.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Puls.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A172FEDB1E04720E00A0BC8A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A172FEDD1E04720E00A0BC8A /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -128,6 +132,8 @@
 				A172FEE41E04720E00A0BC8A /* LaunchScreen.storyboard */,
 				A172FEE71E04720E00A0BC8A /* Info.plist */,
 				A1BFD8181E0484680019C131 /* chart.swift */,
+				A15C9AF71E06D7C000D6FCF9 /* pulseDayCell.swift */,
+				A15C9AF91E088D5300D6FCF9 /* pulseData.swift */,
 			);
 			path = Puls;
 			sourceTree = "<group>";
@@ -461,6 +467,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A15C9AFA1E088D5300D6FCF9 /* pulseData.swift in Sources */,
+				A15C9AF81E06D7C000D6FCF9 /* pulseDayCell.swift in Sources */,
 				A172FEDE1E04720E00A0BC8A /* ViewController.swift in Sources */,
 				A172FEDC1E04720E00A0BC8A /* AppDelegate.swift in Sources */,
 				A1BFD8191E0484680019C131 /* chart.swift in Sources */,
